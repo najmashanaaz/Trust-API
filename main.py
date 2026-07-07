@@ -182,7 +182,7 @@ def get_history(api_id: int, limit: int = 50):
 
 # ── Serve Static Frontend ─────────────────────────────────────────────────────
 frontend_path = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "frontend")
+    os.path.join(os.path.dirname(__file__), "frontend")
 )
 
 
