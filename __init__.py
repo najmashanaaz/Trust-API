@@ -1,0 +1,3 @@
+# This empty file tells Python that "backend" is a package.
+# It allows us to do:  from backend.database import ...
+# Without this file, Python would not recognise "backend" as importable.
