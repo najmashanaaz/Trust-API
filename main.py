@@ -268,10 +268,9 @@ def remove_api_from_watchlist(api_id: int, current_user: dict = Depends(get_curr
     return {"message": "Removed from watchlist"}
 
 # ── Serve Static Frontend ─────────────────────────────────────────────────────
-frontend_path = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "frontend")
-)
+from pathlib import Path
 
+frontend_path = Path(__file__).resolve().parent / "frontend"
 
 @app.get("/", include_in_schema=False)
 def serve_index():
