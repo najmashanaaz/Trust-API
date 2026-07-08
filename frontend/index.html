@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Reliability Monitor Dashboard</title>
+    <!-- Modern typography styling: Outfit and JetBrains Mono for metrics and tables -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <!-- FontAwesome for professional UI system icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main style sheet -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <div class="app-container">
+
+        <!-- Header Section -->
+        <header class="app-header">
+            <div class="header-logo">
+                <i class="fa-solid fa-server-pulse logo-icon"></i>
+                <div class="logo-text">
+                    <h1>PulseGuard</h1>
+                    <p>API Reliability & Uptime Monitoring</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="last-checked">
+                    <i class="fa-regular fa-clock"></i>
+                    <span>Next update in: <strong id="countdown-timer">5:00</strong></span>
+                </div>
+                <button id="refresh-btn" class="btn btn-primary" title="Trigger manual check refresh">
+                    <i class="fa-solid fa-rotate"></i> Refresh Now
+                </button>
+                <div id="auth-panel" class="auth-panel">
+                    <button id="auth-trigger-btn" class="btn btn-secondary" title="Login or Sign Up">
+                        <i class="fa-solid fa-user-lock"></i> Login / Signup
+                    </button>
+                    <div id="user-profile" class="user-profile-widget hidden">
+                        <span id="user-email-display" class="user-email-display">user@example.com</span>
+                        <button id="logout-btn" class="btn btn-secondary btn-icon" title="Logout">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Metrics Overview Panel (Total, UP, DOWN, Avg Reliability) -->
+        <section class="overview-grid">
+            <div class="metric-card glass-panel">
+                <div class="metric-icon blue">
+                    <i class="fa-solid fa-globe"></i>
+                </div>
+                <div class="metric-content">
+                    <p class="metric-label">Monitored APIs</p>
+                    <h3 id="stat-total" class="metric-value">0</h3>
+                </div>
+            </div>
+
+            <div class="metric-card glass-panel">
+                <div class="metric-icon green">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div class="metric-content">
+                    <p class="metric-label">Healthy (UP)</p>
+                    <h3 id="stat-up" class="metric-value text-success">0</h3>
+                </div>
+            </div>
+
+            <div class="metric-card glass-panel">
+                <div class="metric-icon red">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                </div>
+                <div class="metric-content">
+                    <p class="metric-label">Outages (DOWN)</p>
+                    <h3 id="stat-down" class="metric-value text-danger">0</h3>
+                </div>
+            </div>
+
+            <div class="metric-card glass-panel">
+                <div class="metric-icon gold">
+                    <i class="fa-solid fa-gauge-high"></i>
+                </div>
+                <div class="metric-content">
+                    <p class="metric-label">Avg Reliability</p>
+                    <h3 id="stat-reliability" class="metric-value">0%</h3>
+                </div>
+            </div>
+        </section>
+
+        <!-- Search and Filter Controls -->
+        <section class="control-bar glass-panel">
+            <div class="search-wrapper">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="search-input" placeholder="Search APIs by name or endpoint URL...">
+            </div>
+            <div class="filters-wrapper">
+                <label for="status-filter" class="filter-label"><i class="fa-solid fa-filter"></i> Status:</label>
+                <div class="select-container">
+                    <select id="status-filter" class="filter-select">
+                        <option value="all">All APIs</option>
+                        <option value="up">UP Only</option>
+                        <option value="down">DOWN Only</option>
+                        <option value="watchlist" id="watchlist-option" class="hidden">Watchlist Only</option>
+                    </select>
+                </div>
+            </div>
+            <div class="watchlist-filter-wrapper hidden" id="watchlist-filter-wrapper">
+                <button id="watchlist-filter-btn" class="btn btn-secondary" title="Show watchlist only">
+                    <i class="fa-regular fa-star"></i> My Watchlist
+                </button>
+            </div>
+            <div class="sort-wrapper">
+                <label for="sort-select" class="filter-label"><i class="fa-solid fa-sort"></i> Sort By:</label>
+                <div class="select-container">
+                    <select id="sort-select" class="filter-select">
+                        <option value="name">Name</option>
+                        <option value="reliability">Reliability Score</option>
+                        <option value="latency">Response Time</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- API Cards Grid -->
+        <main class="dashboard-grid" id="cards-container">
+            <!-- Dynamic API Cards will be injected here using JavaScript -->
+            <div class="loading-state">
+                <i class="fa-solid fa-spinner fa-spin loading-spinner"></i>
+                <p>Loading APIs and health latency metrics...</p>
+            </div>
+        </main>
+
+        <!-- Detail Modal for Logs and History -->
+        <div id="history-modal" class="modal" role="dialog" aria-hidden="true">
+            <div class="modal-dialog glass-panel">
+                <header class="modal-header">
+                    <div class="modal-title-group">
+                        <h2 id="modal-api-name">API Log History</h2>
+                        <p id="modal-api-url" class="modal-subtitle">https://api.example.com</p>
+                    </div>
+                    <button class="modal-close-btn" id="close-modal-btn" aria-label="Close dialog">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </header>
+                <div class="modal-body">
+                    <!-- Quick Stats inside Modal -->
+                    <div class="modal-stats-grid">
+                        <div class="modal-stat">
+                            <span class="modal-stat-label">Total Checks</span>
+                            <span id="modal-total-checks" class="modal-stat-val">—</span>
+                        </div>
+                        <div class="modal-stat">
+                            <span class="modal-stat-label">Uptime %</span>
+                            <span id="modal-uptime-pct" class="modal-stat-val">—</span>
+                        </div>
+                        <div class="modal-stat">
+                            <span class="modal-stat-label">Avg Latency</span>
+                            <span id="modal-avg-latency" class="modal-stat-val">—</span>
+                        </div>
+                    </div>
+
+                    <!-- Table wrapper -->
+                    <div class="table-container">
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Status</th>
+                                    <th>Response Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-body">
+                                <tr>
+                                    <td colspan="3" class="placeholder-row">Loading historical event log...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auth Modal for Login and Signup -->
+        <div id="auth-modal" class="modal" role="dialog" aria-hidden="true">
+            <div class="modal-dialog auth-dialog glass-panel">
+                <header class="modal-header">
+                    <div class="modal-title-group">
+                        <h2 id="auth-modal-title">Welcome to PulseGuard</h2>
+                        <p id="auth-modal-subtitle" class="modal-subtitle">Login to watch your favorite APIs</p>
+                    </div>
+                    <button class="modal-close-btn" id="close-auth-modal-btn" aria-label="Close dialog">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </header>
+                <div class="modal-body auth-modal-body">
+                    <form id="auth-form" class="auth-form">
+                        <div id="auth-error" class="auth-error-msg hidden"></div>
+
+                        <div class="form-group">
+                            <label for="auth-email">Email Address</label>
+                            <div class="input-wrapper">
+                                <i class="fa-solid fa-envelope input-icon"></i>
+                                <input type="email" id="auth-email" required placeholder="name@domain.com">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="auth-password">Password</label>
+                            <div class="input-wrapper">
+                                <i class="fa-solid fa-lock input-icon"></i>
+                                <input type="password" id="auth-password" required placeholder="••••••••">
+                            </div>
+                        </div>
+
+                        <div class="form-group hidden" id="auth-confirm-group">
+                            <label for="auth-confirm-password">Confirm Password</label>
+                            <div class="input-wrapper">
+                                <i class="fa-solid fa-lock input-icon"></i>
+                                <input type="password" id="auth-confirm-password" placeholder="••••••••">
+                            </div>
+                        </div>
+
+                        <button type="submit" id="auth-submit-btn" class="btn btn-primary btn-block">
+                            <i class="fa-solid fa-right-to-bracket"></i> <span id="auth-submit-text">Login</span>
+                        </button>
+                    </form>
+                    <div class="auth-switch">
+                        <span>Don't have an account? <a href="#" id="auth-switch-link">Sign up</a></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Main controller script -->
+        <script src="/static/script.js" defer></script>
+</body>
+
+</html>
