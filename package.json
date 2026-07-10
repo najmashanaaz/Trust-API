@@ -1,0 +1,52 @@
+{
+  "name": "trustapi-monitor",
+  "displayName": "TrustAPI Monitor",
+  "description": "Live AI API reliability dashboard, downtime alerts and alternative suggestions powered by your local TrustAPI backend.",
+  "version": "1.0.0",
+  "publisher": "trustapi",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Other"],
+  "activationEvents": [
+    "workspaceContains:package.json",
+    "workspaceContains:requirements.txt"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "TrustAPI Monitor",
+      "properties": {
+        "trustapi.backendUrl": {
+          "type": "string",
+          "default": "http://localhost:8000",
+          "description": "Base URL of the running TrustAPI FastAPI backend."
+        },
+        "trustapi.pollIntervalSeconds": {
+          "type": "number",
+          "default": 60,
+          "minimum": 10,
+          "description": "How often (in seconds) to poll the backend for downtime alerts."
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "trustapi.openDashboard",
+        "title": "TrustAPI: Open Dependency Risk Dashboard"
+      },
+      {
+        "command": "trustapi.refreshDashboard",
+        "title": "TrustAPI: Refresh Dependency Risk Dashboard"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.0"
+  }
+}
